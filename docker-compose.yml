@@ -1,0 +1,46 @@
+version: "2.2"
+services:
+
+  jobmanager:
+    container_name: jobmanager
+    build:
+      context: ./container/flink
+    ports:
+      - "8081:8081"
+      - "9249:9249"
+    command: jobmanager
+    volumnes:
+      - ./code:/opt/flink/code
+    environment:
+      - |
+        FlINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+
+  taskmanager:
+    container_name: taskmanager
+    build: 
+      context: ./container/flink/
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    ports:
+      - "9250:9249"
+    volumes:
+      - ./code:/opt/flink/code
+    scale: 1
+    environment:
+      - |
+        FlINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+    
+    prometheus:
+      image: prom/prometheus:v2.37.1
+      container_name: prometheus
+      ports:
+        - "9090:9090"
+      volumes:
+        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+      
+    
